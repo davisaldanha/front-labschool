@@ -28,7 +28,7 @@ function getAlunos(){
                 <td>${aluno.nome}</td>
                 <td>${aluno.telefone}</td>
                 <td>${aluno.email}</td>
-                <td><button class="btn btn-success" onclick="">Editar</button></td>
+                <td><button class="btn btn-success" onclick="redirect(${aluno.id})">Editar</button></td>
                 <td><button class="btn btn-danger" onclick="deleteAluno(${aluno.id})">Excluir</button></td>
                 </tr>`
             }
@@ -65,9 +65,70 @@ function saveAluno(){
         curso: option
     }
 
-    axios.post(`${url}/aluno`, data).then((response) => {
-        alert(`Aluno ${response.data.result.nome} cadastrado com sucesso!`)
+    axios.post(`${url}/aluno`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }).then((response) => {
+        alert(response.data.result)
         window.location.href = "http://localhost/front-labschool/matricula-alunos.html"
     }    
+    ).catch(err => console.error(err))
+}
+
+function redirect(id){
+    window.location.href = `http://localhost/front-labschool/atualizacao-aluno.html?id=${id}`
+}
+
+function loadFields(){
+
+    //Capturar o parametro 'id' na URL
+    //get(): obter o valor de um parametro especifico
+    let params = new URLSearchParams(window.location.search)
+    let idParams = params.get('id')
+
+    axios.get(`${url}/aluno/${idParams}`).then(
+        (response) => {
+            const data = response.data.result
+
+            // document.getElementById('previewImage')
+            document.getElementById('inputName').value = data.nome
+            document.getElementById('inputEmail').value = data.email
+            document.getElementById('inputPhone').value = data.telefone
+
+            const [date, time] = data.data_nascimento.split('T') 
+
+            document.getElementById('inputDate').value = date
+        }
+    ).catch(err => console.error(err))
+}
+
+function updateAluno(){
+    let image = document.getElementById('uploadImage').files[0]
+    let nome = document.getElementById('inputName').value
+    let email = document.getElementById('inputEmail').value
+    let telefone = document.getElementById('inputPhone').value
+    let data_nascimento = document.getElementById('inputDate').value
+
+    let params = new URLSearchParams(window.location.search)
+    let idParams = params.get('id')
+
+    const data = {
+        image: image,
+        nome: nome,
+        email: email,
+        telefone: telefone,
+        data_nascimento: data_nascimento
+    }
+
+    axios.put(`${url}/aluno/${idParams}`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }).then(
+        (response) => {
+            alert(response.data.result)
+            window.location.href = "http://localhost/front-labschool/index.html"
+        }
     ).catch(err => console.error(err))
 }
